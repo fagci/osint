@@ -46,6 +46,8 @@ def main(target:str):
     if RE_PHONE.match(target):
         print('Process phone')
         osint_phone(target.replace('+7', '8'))
+    else:
+        print('Only phone numbers for now')
 
 if __name__ == "__main__":
     Fire(main)
