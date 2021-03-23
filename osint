@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+import re
+
+from bs4 import BeautifulSoup
+from fire import Fire
+from requests import Session
+
+USER_AGENT = 'Mozilla/5.0'
+HEADERS = {'User-Agent': USER_AGENT}
+RE_PHONE = re.compile(r'\+?[\d() -]{10,15}')
+
+request = Session()
+
+def soup(response):
+    return BeautifulSoup(response.text, 'html.parser')
+
+def get_page(url):
+    return soup(request.get(url, headers=HEADERS))
+
+def neberitrubku(phone):
+    url ='https://www.neberitrubku.ru/nomer-telefona/%s' % phone
+    page = get_page(url)
+    categories = [v.text for v in page.select('.categories li')[:5]]
+    values = {v.text for v in page.select('[itemprop="name"]') if v}
+    print()
+    print('Categories:')
+    print('', *categories, sep='\n  ')
+    print()
+    print('Reviews:')
+    print('', *values, sep='\n  ')
+
+def zvonili(phone):
+    url ='https://zvonili.com/phone/%s' % phone
+    page=get_page(url)
+    address = page.select('[itemprop="address"]')
+    if address:
+        print('Address:', address[0].text)
+
+def osint_phone(target):
+    zvonili(target)
+    neberitrubku(target)
+
+def main(target:str):
+    target = str(target)
+    print('OSINT for', target)
+    if RE_PHONE.match(target):
+        print('Process phone')
+        osint_phone(target.replace('+7', '8'))
+
+if __name__ == "__main__":
+    Fire(main)
